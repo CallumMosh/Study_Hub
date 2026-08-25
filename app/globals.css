@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::selection {
+  background: rgba(203, 163, 92, 0.25);
+  color: #fff;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0B0D0C;
+  background-image: radial-gradient(circle at 20% 0%, rgba(203,163,92,0.06), transparent 40%);
+  color: #EDEDE8;
+}
+
+.card {
+  background: #141716;
+  border: 1px solid rgba(237,237,232,0.08);
+  border-radius: 10px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9CA39B;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 150ms ease;
+}
+
+.btn-primary {
+  background: #CBA35C;
+  color: #0B0D0C;
+}
+.btn-primary:hover {
+  background: #dcb56f;
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(237,237,232,0.14);
+  color: #EDEDE8;
+}
+.btn-ghost:hover {
+  border-color: rgba(203,163,92,0.5);
+  color: #CBA35C;
+}
+
+.input {
+  background: #0B0D0C;
+  border: 1px solid rgba(237,237,232,0.14);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #EDEDE8;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+}
+.input:focus {
+  border-color: #CBA35C;
+}
+
+.tab {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 4px;
+  color: #9CA39B;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.tab.active {
+  color: #EDEDE8;
+  border-bottom-color: #CBA35C;
+}
+
+/* Flashcard flip */
+.flip-scene {
+  perspective: 1400px;
+}
+.flip-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 500ms cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+.flip-card.flipped {
+  transform: rotateY(180deg);
+}
+.flip-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-card {
+    transition: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
