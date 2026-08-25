@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { shuffleQuiz } from "../lib/quizUtils";
 
 export default function Quiz({ questions, onComplete }) {
+  const [shuffleSeed, setShuffleSeed] = useState(0);
+  const shuffled = useMemo(() => shuffleQuiz(questions), [questions, shuffleSeed]);
+
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
@@ -11,7 +15,7 @@ export default function Quiz({ questions, onComplete }) {
   const [refining, setRefining] = useState(false);
   const [refinedExplanation, setRefinedExplanation] = useState(null);
 
-  const q = questions[index];
+  const q = shuffled[index];
   const isCorrect = selected === q?.correctIndex;
 
   function handleSelect(i) {
@@ -23,9 +27,9 @@ export default function Quiz({ questions, onComplete }) {
 
   function handleNext() {
     setRefinedExplanation(null);
-    if (index >= questions.length - 1) {
+    if (index >= shuffled.length - 1) {
       setFinished(true);
-      onComplete?.({ score: score + (isCorrect ? 0 : 0), total: questions.length, finalScore: score });
+      onComplete?.({ score: score + (isCorrect ? 0 : 0), total: shuffled.length, finalScore: score });
     } else {
       setIndex((i) => i + 1);
       setSelected(null);
@@ -51,6 +55,7 @@ export default function Quiz({ questions, onComplete }) {
   }
 
   function restart() {
+    setShuffleSeed((s) => s + 1);
     setIndex(0);
     setSelected(null);
     setAnswered(false);
@@ -64,12 +69,12 @@ export default function Quiz({ questions, onComplete }) {
   }
 
   if (finished) {
-    const pct = Math.round((score / questions.length) * 100);
+    const pct = Math.round((score / shuffled.length) * 100);
     return (
       <div className="card p-8 text-center">
         <p className="eyebrow mb-2">quiz complete</p>
         <p className="font-display text-3xl mb-2">
-          {score} / {questions.length}
+          {score} / {shuffled.length}
         </p>
         <p className="text-muted mb-6">{pct}% correct</p>
         <button className="btn btn-primary" onClick={restart}>
@@ -83,7 +88,7 @@ export default function Quiz({ questions, onComplete }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <p className="eyebrow text-muted">
-          question {index + 1} of {questions.length}
+          question {index + 1} of {shuffled.length}
         </p>
         <p className="eyebrow text-accent">
           {score} correct so far
@@ -138,7 +143,7 @@ export default function Quiz({ questions, onComplete }) {
 
       {answered && (
         <button className="btn btn-primary w-full justify-center mt-5" onClick={handleNext}>
-          {index >= questions.length - 1 ? "Finish quiz" : "Next question"}
+          {index >= shuffled.length - 1 ? "Finish quiz" : "Next question"}
         </button>
       )}
     </div>
