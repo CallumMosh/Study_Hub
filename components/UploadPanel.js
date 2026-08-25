@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { parsePdf } from "../lib/parsePdf";
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -18,7 +19,10 @@ function fileToBase64(file) {
 export default function UploadPanel({ initialContent, onGenerate, generating, error }) {
   const [content, setContent] = useState(initialContent || "");
   const [images, setImages] = useState([]);
+  const [pdfStatus, setPdfStatus] = useState(null);
+  const [pdfError, setPdfError] = useState(null);
   const fileInputRef = useRef(null);
+  const pdfInputRef = useRef(null);
 
   async function handleFiles(e) {
     const files = Array.from(e.target.files || []);
@@ -26,6 +30,26 @@ export default function UploadPanel({ initialContent, onGenerate, generating, er
     const encoded = await Promise.all(imageFiles.map(fileToBase64));
     setImages((prev) => [...prev, ...encoded]);
     e.target.value = "";
+  }
+
+  async function handlePdf(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setPdfError(null);
+    setPdfStatus("Reading PDF…");
+    try {
+      const { text, images: pdfImages, pageCount } = await parsePdf(file, setPdfStatus);
+      setContent((prev) => (prev ? `${prev}\n\n${text}` : text));
+      if (pdfImages.length > 0) {
+        setImages((prev) => [...prev, ...pdfImages]);
+      }
+      setPdfStatus(`Loaded ${pageCount} page${pageCount === 1 ? "" : "s"} from ${file.name}`);
+    } catch (err) {
+      console.error(err);
+      setPdfError("Couldn't read that PDF. Try exporting it as images instead.");
+      setPdfStatus(null);
+    }
   }
 
   function removeImage(idx) {
@@ -65,6 +89,16 @@ export default function UploadPanel({ initialContent, onGenerate, generating, er
       <div className="flex items-center justify-between mt-4">
         <div className="flex gap-3">
           <input
+            ref={pdfInputRef}
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            onChange={handlePdf}
+          />
+          <button className="btn btn-ghost text-sm" onClick={() => pdfInputRef.current?.click()} disabled={!!pdfStatus && pdfStatus.startsWith("Reading")}>
+            + Upload PDF
+          </button>
+          <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
@@ -81,12 +115,21 @@ export default function UploadPanel({ initialContent, onGenerate, generating, er
           disabled={!canGenerate}
           onClick={() => onGenerate({ content, images })}
         >
-          {generating ? "Generating…" : "Generate study material"}
+          {generating ? "Writing detailed notes…" : "Generate study material"}
         </button>
       </div>
 
+      {generating && (
+        <p className="text-xs text-muted mt-3">
+          This produces full, in-depth notes rather than a quick summary — it can take a minute or so for longer material.
+        </p>
+      )}
+
+      {pdfStatus && <p className="text-xs text-accent mt-3">{pdfStatus}</p>}
+      {pdfError && <p className="text-sm text-bad mt-3">{pdfError}</p>}
+
       <p className="text-xs text-muted mt-3">
-        Tip: for PowerPoint slides, export as images or PDF-to-image first — paste text notes work directly.
+        PDFs are read automatically — text is pulled from every page, and any page that's mostly diagrams or images gets sent as a picture too. For PowerPoint files, export as PDF first.
       </p>
 
       {error && <p className="text-sm text-bad mt-3">{error}</p>}
