@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCourse, getLectures, addLecture, deleteLecture } from "../../../lib/storage";
 import { dueCount } from "../../../lib/spacedRepetition";
-
 export default function CoursePage({ params }) {
   const { courseId } = params;
   const router = useRouter();
@@ -47,6 +46,18 @@ export default function CoursePage({ params }) {
         </Link>
         <h1 className="font-display text-3xl sm:text-4xl mt-3">{course.name}</h1>
       </section>
+
+      {lectures.some((l) => l.generated?.quiz?.length > 0) && (
+        <section className="pt-8">
+          <Link href={`/course/${courseId}/quiz`} className="card p-5 flex items-center justify-between hover:border-accent transition-colors block">
+            <div>
+              <p className="font-display text-lg">Quiz me on the whole course</p>
+              <p className="text-sm text-muted mt-1">Mixes questions from every generated lecture</p>
+            </div>
+            <span className="text-accent text-sm">start →</span>
+          </Link>
+        </section>
+      )}
 
       <section className="pt-10">
         <div className="flex items-center justify-between mb-6">
