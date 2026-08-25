@@ -1,0 +1,23 @@
+// Models tend to put the correct answer in a biased position (often first).
+// Shuffle each question's options client-side so the displayed order is
+// randomized, independent of whatever order the model generated them in.
+
+function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+export function shuffleQuestionOptions(question) {
+  const correctOption = question.options[question.correctIndex];
+  const shuffledOptions = shuffle(question.options);
+  const newCorrectIndex = shuffledOptions.indexOf(correctOption);
+  return { ...question, options: shuffledOptions, correctIndex: newCorrectIndex };
+}
+
+export function shuffleQuiz(questions) {
+  return questions.map(shuffleQuestionOptions);
+}
