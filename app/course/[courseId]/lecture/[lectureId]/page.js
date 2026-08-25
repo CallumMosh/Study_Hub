@@ -26,7 +26,7 @@ export default function LecturePage({ params }) {
     }
     setCourse(c);
     setLecture(l);
-    setTab(l.generated ? "summary" : "notes");
+    setTab(l.generated ? "study" : "source");
   }, [courseId, lectureId, router]);
 
   async function handleGenerate({ content, images }) {
@@ -55,7 +55,7 @@ export default function LecturePage({ params }) {
         title: lecture.title === "" ? data.title : lecture.title,
       });
       setLecture(updated);
-      setTab("summary");
+      setTab("study");
     } catch (e) {
       setError("Couldn't reach the generation service. Check your connection and try again.");
     } finally {
@@ -91,14 +91,17 @@ export default function LecturePage({ params }) {
         <h1 className="font-display text-3xl sm:text-4xl mt-3">{lecture.title}</h1>
       </section>
 
-      <nav className="flex gap-6 mt-6 border-b border-line">
-        <button className={`tab ${tab === "notes" ? "active" : ""}`} onClick={() => setTab("notes")}>
-          Notes
+      <nav className="flex gap-6 mt-6 border-b border-line overflow-x-auto">
+        <button className={`tab ${tab === "source" ? "active" : ""}`} onClick={() => setTab("source")}>
+          Source
         </button>
         {hasGenerated && (
           <>
+            <button className={`tab ${tab === "study" ? "active" : ""}`} onClick={() => setTab("study")}>
+              Study Notes
+            </button>
             <button className={`tab ${tab === "summary" ? "active" : ""}`} onClick={() => setTab("summary")}>
-              Summary
+              Quick Summary
             </button>
             <button className={`tab ${tab === "flashcards" ? "active" : ""}`} onClick={() => setTab("flashcards")}>
               Flashcards
@@ -111,13 +114,47 @@ export default function LecturePage({ params }) {
       </nav>
 
       <section className="pt-8">
-        {tab === "notes" && (
+        {tab === "source" && (
           <UploadPanel
             initialContent={lecture.content}
             onGenerate={handleGenerate}
             generating={generating}
             error={error}
           />
+        )}
+
+        {tab === "study" && hasGenerated && (
+          <div className="flex flex-col gap-5">
+            {(lecture.generated.notes || []).length === 0 && (
+              <p className="text-muted text-sm">No detailed notes were generated for this upload.</p>
+            )}
+            {(lecture.generated.notes || []).map((section, i) => (
+              <div key={i} className="card p-6 sm:p-8">
+                <p className="font-display text-xl mb-4">{section.heading}</p>
+                <div className="flex flex-col gap-4">
+                  {(section.body || "").split(/\n\n+/).map((para, pi) => (
+                    <p key={pi} className="leading-relaxed text-[15px]">{para}</p>
+                  ))}
+                </div>
+                {section.examples?.length > 0 && (
+                  <div className="mt-5 pt-5 border-t border-line flex flex-col gap-3">
+                    {section.examples.map((ex, ei) => (
+                      <p key={ei} className="text-sm leading-relaxed">
+                        <span className="text-accent">example — </span>
+                        {ex}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                {section.watchOutFor && (
+                  <p className="text-sm text-muted leading-relaxed mt-4 border-l-2 border-bad pl-4">
+                    <span className="text-bad">watch out — </span>
+                    {section.watchOutFor}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
         {tab === "summary" && hasGenerated && (
